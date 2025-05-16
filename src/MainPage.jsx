@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchOpenAIResponse } from './FetchOpenAI';
+import './App.css';
 
 function MainPage({ addToHistory, activeResponse }) {
   const [question, setQuestion] = useState('');
@@ -14,7 +15,6 @@ function MainPage({ addToHistory, activeResponse }) {
     if (savedImages) {
       setBgImages(JSON.parse(savedImages));
     } else {
-      // Default images if none exist
       setBgImages([
         'https://i.pinimg.com/736x/6c/5f/45/6c5f45a6877ff424cf103aba4881c7e4.jpg'
       ]);
@@ -37,7 +37,6 @@ function MainPage({ addToHistory, activeResponse }) {
     try {
       const result = await fetchOpenAIResponse(question);
       addToHistory(question, result);
-      // Cycle to next background
       setCurrentBgIndex(prev => (prev + 1) % bgImages.length);
     } catch (error) {
       console.error("Error:", error);
@@ -49,7 +48,6 @@ function MainPage({ addToHistory, activeResponse }) {
 
   const handleImageUpload = (files) => {
     const newImages = [...bgImages];
-    
     Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -128,7 +126,7 @@ function MainPage({ addToHistory, activeResponse }) {
           </div>
         )}
         
-        <form className="chat-form" onSubmit={handleSubmit}>
+        <form className={`chat-form ${loading ? 'loading' : ''}`} onSubmit={handleSubmit}>
           <input 
             className="input-bar"
             type="text"

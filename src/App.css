@@ -117,19 +117,45 @@ body {
   background-color: var(--content-overlay);
   min-height: calc(100vh - 40px);
 }
-
-/* Form Styles */
-.chat-form { 
-  width: 100%;
+.chat-form {
+  width: 90%;
+  max-width: 800px;
+  position: fixed;
+  bottom: 35%;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  padding: 10px;
-  margin-top: auto;
-  margin-bottom: 15px;
-  transform: translateY(-2px);
+  padding: 15px;
   border-radius: 12px;
-  background-color: var(--input-bg); 
+  background-color: var(--input-bg);
+  transition: bottom 0.5s ease, padding 0.3s ease;
+  z-index: 10; /* Keep it above most other elements */
 }
+
+/* Move the chat form down when loading */
+.chat-form.loading {
+  bottom: 15%;
+  padding: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chat-form {
+    width: 95%;
+    padding: 12px;
+    bottom: 30%;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-form {
+    width: 95%;
+    padding: 10px;
+    bottom: 25%;
+  }
+}
+
 
 .input-bar {
   flex: 1;
