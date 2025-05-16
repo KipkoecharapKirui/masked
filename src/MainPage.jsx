@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchOpenAIResponse } from './FetchOpenAI';
 import './App.css';
 
@@ -8,6 +8,10 @@ function MainPage({ addToHistory, activeResponse }) {
   const [bgImages, setBgImages] = useState([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [showImageManager, setShowImageManager] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [imageSearch, setImageSearch] = useState(null);
+  const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   // Load images from localStorage
   useEffect(() => {
@@ -19,6 +23,30 @@ function MainPage({ addToHistory, activeResponse }) {
         'https://i.pinimg.com/736x/6c/5f/45/6c5f45a6877ff424cf103aba4881c7e4.jpg'
       ]);
     }
+
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window) {
+      recognitionRef.current = new window.webkitSpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setQuestion(transcript);
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
   }, []);
 
   // Apply background style
@@ -31,11 +59,23 @@ function MainPage({ addToHistory, activeResponse }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!question.trim()) return;
+    if (!question.trim() && !imageSearch) return;
     setLoading(true);
 
     try {
-      const result = await fetchOpenAIResponse(question);
+      let result;
+      if (imageSearch) {
+        // Here you would typically send the image to your API
+        // For demo purposes, we'll just use a placeholder
+        result = await fetchOpenAIResponse(
+          `[Image attached] ${question || "What's in this image?"}`, 
+          imageSearch
+        );
+        setImageSearch(null); // Clear after submission
+      } else {
+        result = await fetchOpenAIResponse(question);
+      }
+      
       addToHistory(question, result);
       setCurrentBgIndex(prev => (prev + 1) % bgImages.length);
     } catch (error) {
@@ -58,6 +98,32 @@ function MainPage({ addToHistory, activeResponse }) {
       reader.readAsDataURL(file);
     });
     setShowImageManager(false);
+  };
+
+  const handleImageSearch = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImageSearch(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const toggleVoiceRecognition = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition not supported in your browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
   };
 
   return (
@@ -127,14 +193,53 @@ function MainPage({ addToHistory, activeResponse }) {
         )}
         
         <form className={`chat-form ${loading ? 'loading' : ''}`} onSubmit={handleSubmit}>
-          <input 
-            className="input-bar"
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Talk to me ..."
-            disabled={loading}
-          />
+          {imageSearch && (
+            <div className="image-preview-container">
+              <img src={imageSearch} alt="Search preview" className="image-search-preview" />
+              <button 
+                type="button" 
+                className="remove-image-button"
+                onClick={() => setImageSearch(null)}
+              >
+                ×
+              </button>
+            </div>
+          )}
+          <div className="input-container">
+            <input 
+              className="input-bar"
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder={imageSearch ? "Ask about this image..." : "Talk to me..."}
+              disabled={loading}
+            />
+            <div className="input-buttons">
+              <button 
+                type="button" 
+                className={`voice-button ${isListening ? 'listening' : ''}`}
+                onClick={toggleVoiceRecognition}
+                disabled={loading}
+              >
+                {isListening ? '🎤' : '🎤'}
+              </button>
+              <button 
+                type="button" 
+                className="image-upload-button"
+                onClick={() => fileInputRef.current.click()}
+                disabled={loading}
+              >
+                📷
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageSearch}
+                style={{ display: 'none' }}
+              />
+            </div>
+          </div>
           <button className="submit-button" type="submit" disabled={loading}>
             {loading ? 'Thinking...' : '➢'}
           </button>

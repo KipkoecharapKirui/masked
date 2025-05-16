@@ -116,8 +116,7 @@ body {
   padding: 20px;
   background-color: var(--content-overlay);
   min-height: calc(100vh - 40px);
-}
-.chat-form {
+}.chat-form {
   width: 90%;
   max-width: 800px;
   position: fixed;
@@ -130,13 +129,133 @@ body {
   border-radius: 12px;
   background-color: var(--input-bg);
   transition: bottom 0.5s ease, padding 0.3s ease;
-  z-index: 10; /* Keep it above most other elements */
+  z-index: 10;
 }
 
-/* Move the chat form down when loading */
+/* Input container with integrated buttons */
+.chat-form .input-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Input field */
+.chat-form .input-bar {
+  flex: 1;
+  padding: 12px 50px 12px 15px; /* Right padding for buttons */
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* Button container */
+.chat-form .input-buttons {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  gap: 5px;
+}
+
+/* Voice and camera buttons */
+.chat-form .voice-button,
+.chat-form .image-upload-button {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  color: var(--text-color);
+}
+
+.chat-form .voice-button:hover,
+.chat-form .image-upload-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Active listening state */
+.chat-form .voice-button.listening {
+  animation: pulse 1.5s infinite;
+  color: var(--accent-color);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Submit button */
+.chat-form .submit-button {
+  padding: 0 20px;
+  min-width: 50px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--accent-color);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-form .submit-button:hover {
+  background-color: #0e8c6d;
+}
+
+/* Loading state adjustments */
 .chat-form.loading {
   bottom: 15%;
   padding: 20px;
+}
+
+.chat-form.loading .submit-button {
+  background-color: #666;
+}
+
+/* Image preview styling */
+.chat-form .image-preview-container {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.chat-form .image-search-preview {
+  width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+}
+
+.chat-form .remove-image-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive adjustments */
@@ -146,6 +265,17 @@ body {
     padding: 12px;
     bottom: 30%;
   }
+  
+  .chat-form .input-bar {
+    padding: 10px 45px 10px 12px;
+  }
+  
+  .chat-form .voice-button,
+  .chat-form .image-upload-button {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -153,6 +283,16 @@ body {
     width: 95%;
     padding: 10px;
     bottom: 25%;
+  }
+  
+  .chat-form .input-bar {
+    padding: 8px 40px 8px 10px;
+    font-size: 14px;
+  }
+  
+  .chat-form .submit-button {
+    padding: 0 15px;
+    min-width: 40px;
   }
 }
 
