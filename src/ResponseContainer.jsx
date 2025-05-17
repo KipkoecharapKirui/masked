@@ -7,7 +7,7 @@ export const ResponseContainer = ({ activeResponse, loading }) => {
     activeResponse && (
       <div className="response-container">
         <div className="response">
-          <h3>🤖 Gemini</h3>
+          <h3>🤖🤔🤔</h3>
           <div className="response-content">
             {loading ? (
               <div className="loading-indicator">

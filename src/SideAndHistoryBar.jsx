@@ -5,6 +5,7 @@ function SideAndHistoryBar({ history, setActiveResponse, clearHistory, deleteHis
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Handle mobile sidebar behavior
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
@@ -12,12 +13,12 @@ function SideAndHistoryBar({ history, setActiveResponse, clearHistory, deleteHis
       setSidebarOpen(!mobile); // Open sidebar on desktop, closed on mobile
     };
 
-    handleResize();
+    handleResize(); // Set initial state
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleSidebar = () => setSidebarOpen(open => !open);
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
     <>
@@ -48,20 +49,30 @@ function SideAndHistoryBar({ history, setActiveResponse, clearHistory, deleteHis
 
         <h3 className="history-header">History</h3>
         <div className="history-container">
-          {history.length === 0 && (
+          {history.length === 0 ? (
             <p className="empty-history">No chat history yet.</p>
-          )}
-          {history.map(item => (
-            <div key={item.id} className="history-item">
-              <div className="user-question" onClick={() => {
-                setActiveResponse(item.response);
-                if (isMobile) setSidebarOpen(false);
-              }}>
-                <strong>{item.title}</strong>
+          ) : (
+            history.map(item => (
+              <div key={item.id} className="history-item">
+                <div
+                  className="user-question"
+                  onClick={() => {
+                    setActiveResponse(item.response);
+                    if (isMobile) setSidebarOpen(false);
+                  }}
+                >
+                  <strong>{item.title}</strong>
+                </div>
+                <button
+                  className="delete-history-button"
+                  onClick={() => deleteHistoryItem(item.id)}
+                  aria-label="Delete chat"
+                >
+                  🗑️
+                </button>
               </div>
-              <button className="delete-history-button" onClick={() => deleteHistoryItem(item.id)}>🗑️</button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </aside>
 

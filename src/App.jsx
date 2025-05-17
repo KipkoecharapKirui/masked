@@ -29,14 +29,10 @@ function App() {
     }
   }, [history]);
 
-  // Updated addToHistory function to accept title
+  // Add new chat entry to history
   const addToHistory = ({ title, question, response, isImageQuery = false }) => {
     const finalResponse = response?.trim() ? response : "No response generated";
-    
-    // Generate fallback title if none provided
-    const finalTitle = title || 
-      question.split(/\s+/).slice(0, 5).join(' ') || 
-      (isImageQuery ? "Image Query" : "New Chat");
+    const finalTitle = title || question.split(/\s+/).slice(0, 5).join(' ') || (isImageQuery ? "Image Query" : "New Chat");
 
     const newItem = {
       id: Date.now(),
@@ -51,10 +47,19 @@ function App() {
     setActiveResponse(finalResponse);
   };
 
-  // Clear all history and active response
+  // Clear all chat history
   const clearHistory = () => {
     setHistory([]);
     setActiveResponse('');
+  };
+
+  // Delete a single history item by id
+  const deleteHistoryItem = (id) => {
+    setHistory(prev => prev.filter(item => item.id !== id));
+    // Optional: If the deleted item was activeResponse, clear it
+    if (activeResponse && history.find(item => item.id === id)?.response === activeResponse) {
+      setActiveResponse('');
+    }
   };
 
   return (
@@ -63,6 +68,7 @@ function App() {
         history={history}
         setActiveResponse={setActiveResponse}
         clearHistory={clearHistory}
+        deleteHistoryItem={deleteHistoryItem}  
       />
       <MainPage
         addToHistory={addToHistory}
