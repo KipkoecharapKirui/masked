@@ -1,0 +1,33 @@
+.app-mainpagecontainer {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  min-height: 100vh; /* Ensure it covers the entire viewport height */
+  background-color: #f0f0f0; /* Light background color */
+}
+
+.main-page {
+  width: 80%; /* Adjust the width as needed */
+  max-width: 1200px; /* Maximum width to prevent it from stretching too much on large screens */
+  margin: 20px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.5s ease-in-out;
+  position: relative; /* For positioning the settings button */
+  height: max-content;
+}
+
+/* Settings Button */
+.settings-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0,)
+}

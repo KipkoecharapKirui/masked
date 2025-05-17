@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchOpenAIResponse } from './FetchOpenAI';
+import { fetchGeminiResponse } from './fetchGeminiResponse';
+import 'speech-recognition-polyfill';
+import { ImageManager } from './ImageManager';
+import { ResponseContainer } from './ResponseContainer';
+import { ChatInput } from './ChatInput';
 import './App.css';
 
 function MainPage({ addToHistory, activeResponse }) {
@@ -10,10 +14,21 @@ function MainPage({ addToHistory, activeResponse }) {
   const [showImageManager, setShowImageManager] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [imageSearch, setImageSearch] = useState(null);
-  const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  // Load images from localStorage
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        160
+      )}px`;
+    }
+  }, [question]);
+
+  // Initialize background images and speech recognition
   useEffect(() => {
     const savedImages = localStorage.getItem('backgroundImages');
     if (savedImages) {
@@ -24,7 +39,6 @@ function MainPage({ addToHistory, activeResponse }) {
       ]);
     }
 
-    // Initialize speech recognition
     if ('webkitSpeechRecognition' in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
       recognitionRef.current.continuous = false;
@@ -57,57 +71,61 @@ function MainPage({ addToHistory, activeResponse }) {
     }
   }, [bgImages, currentBgIndex]);
 
+  const generateTitle = async (question, response) => {
+    try {
+      // Ask Gemini to generate a concise title
+      const titleResponse = await fetchGeminiResponse(
+        `Generate a 3-5 word title summarizing this Q&A pair:\n\n` +
+        `Q: ${question}\nA: ${response}\n\n` +
+        `Respond with ONLY the title, no additional text.`
+      );
+      
+      // Clean up the title response
+      return titleResponse.replace(/['"]/g, '').trim().slice(0, 50);
+    } catch (error) {
+      console.error("Title generation failed:", error);
+      // Fallback to first few words of the question
+      return question.split(/\s+/).slice(0, 5).join(' ') || "New Chat";
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!question.trim() && !imageSearch) return;
     setLoading(true);
 
     try {
-      let result;
+      let response;
       if (imageSearch) {
-        // Here you would typically send the image to your API
-        // For demo purposes, we'll just use a placeholder
-        result = await fetchOpenAIResponse(
+        response = await fetchGeminiResponse(
           `[Image attached] ${question || "What's in this image?"}`, 
           imageSearch
         );
-        setImageSearch(null); // Clear after submission
+        setImageSearch(null);
       } else {
-        result = await fetchOpenAIResponse(question);
+        response = await fetchGeminiResponse(question);
       }
       
-      addToHistory(question, result);
-      setCurrentBgIndex(prev => (prev + 1) % bgImages.length);
+      // Generate title for this conversation
+      const title = await generateTitle(question, response);
+      
+      // Add to history with the generated title only
+      addToHistory({
+        title,
+        question: title,
+        response,
+        isImageQuery: !!imageSearch
+      });
+      
+      setCurrentBgIndex((prev) => (prev + 1) % bgImages.length);
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
       setQuestion('');
-    }
-  };
-
-  const handleImageUpload = (files) => {
-    const newImages = [...bgImages];
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        newImages.push(e.target.result);
-        setBgImages(newImages);
-        localStorage.setItem('backgroundImages', JSON.stringify(newImages));
-      };
-      reader.readAsDataURL(file);
-    });
-    setShowImageManager(false);
-  };
-
-  const handleImageSearch = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImageSearch(e.target.result);
-      };
-      reader.readAsDataURL(file);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   };
 
@@ -127,123 +145,39 @@ function MainPage({ addToHistory, activeResponse }) {
   };
 
   return (
-    <div className="main-page">
-      <button 
-        className="settings-button"
-        onClick={() => setShowImageManager(!showImageManager)}
-      >
-        ⚙️
-      </button>
+    <div className="app-mainpagecontainer">
+      <div className="main-page">
+        <button 
+          className="settings-button"
+          onClick={() => setShowImageManager(!showImageManager)}
+        >
+          ⚙️
+        </button>
 
-      {showImageManager && (
-        <div className="image-manager-modal">
-          <div className="image-manager">
-            <h3>Upload Background Images</h3>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              onChange={(e) => handleImageUpload(e.target.files)}
-              className="image-upload-input"
-            />
-            <div className="current-images">
-              <h4>Current Backgrounds ({bgImages.length})</h4>
-              <div className="image-grid">
-                {bgImages.map((img, index) => (
-                  <div key={index} className="image-thumbnail">
-                    <img 
-                      src={img} 
-                      alt={`Background ${index}`}
-                      className={index === currentBgIndex ? 'active' : ''}
-                    />
-                    <button 
-                      onClick={() => {
-                        const updated = bgImages.filter((_, i) => i !== index);
-                        setBgImages(updated);
-                        localStorage.setItem('backgroundImages', JSON.stringify(updated));
-                        if (currentBgIndex >= updated.length) {
-                          setCurrentBgIndex(0);
-                        }
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button 
-              className="close-manager"
-              onClick={() => setShowImageManager(false)}
-            >
-              Close
-            </button>
-          </div>
+        <ImageManager 
+          showImageManager={showImageManager}
+          setShowImageManager={setShowImageManager}
+          bgImages={bgImages}
+          setBgImages={setBgImages}
+          currentBgIndex={currentBgIndex}
+          setCurrentBgIndex={setCurrentBgIndex}
+        />
+
+        <div className={`content-wrapper ${showImageManager ? 'blur-content' : ''}`}>
+          <ResponseContainer activeResponse={activeResponse} loading={loading} />
+          
+          <ChatInput
+            question={question}
+            setQuestion={setQuestion}
+            loading={loading}
+            imageSearch={imageSearch}
+            setImageSearch={setImageSearch}
+            handleSubmit={handleSubmit}
+            toggleVoiceRecognition={toggleVoiceRecognition}
+            isListening={isListening}
+            textareaRef={textareaRef}
+          />
         </div>
-      )}
-
-      <div className={`content-wrapper ${showImageManager ? 'blur-content' : ''}`}>
-        {activeResponse && (
-          <div className="response-container">
-            <div className="response">
-              <h3>Response:</h3>
-              <p>{activeResponse}</p>
-            </div>
-          </div>
-        )}
-        
-        <form className={`chat-form ${loading ? 'loading' : ''}`} onSubmit={handleSubmit}>
-          {imageSearch && (
-            <div className="image-preview-container">
-              <img src={imageSearch} alt="Search preview" className="image-search-preview" />
-              <button 
-                type="button" 
-                className="remove-image-button"
-                onClick={() => setImageSearch(null)}
-              >
-                ×
-              </button>
-            </div>
-          )}
-          <div className="input-container">
-            <input 
-              className="input-bar"
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder={imageSearch ? "Ask about this image..." : "Talk to me..."}
-              disabled={loading}
-            />
-            <div className="input-buttons">
-              <button 
-                type="button" 
-                className={`voice-button ${isListening ? 'listening' : ''}`}
-                onClick={toggleVoiceRecognition}
-                disabled={loading}
-              >
-                {isListening ? '🎤' : '🎤'}
-              </button>
-              <button 
-                type="button" 
-                className="image-upload-button"
-                onClick={() => fileInputRef.current.click()}
-                disabled={loading}
-              >
-                📷
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleImageSearch}
-                style={{ display: 'none' }}
-              />
-            </div>
-          </div>
-          <button className="submit-button" type="submit" disabled={loading}>
-            {loading ? 'Thinking...' : '➢'}
-          </button>
-        </form>
       </div>
     </div>
   );

@@ -1,71 +1,74 @@
-// ImageManager.jsx
-import React, { useState } from 'react';
+import React from 'react';
+import './App.css'
 
-function ImageManager({ onImagesUpdate, onClose }) {  // Added onClose prop
-  const [images, setImages] = useState([]);
-  const [newImage, setNewImage] = useState(null);
-
-  // Load saved images from localStorage on component mount
-  useEffect(() => {
-    const savedImages = localStorage.getItem('backgroundImages');
-    if (savedImages) {
-      setImages(JSON.parse(savedImages));
-    }
-  }, []);
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+export const ImageManager = ({ 
+  showImageManager, 
+  setShowImageManager, 
+  bgImages, 
+  setBgImages,
+  currentBgIndex,
+  setCurrentBgIndex
+}) => {
+  const handleImageUpload = (files) => {
+    const newImages = [...bgImages];
+    Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewImage(reader.result);
+      reader.onload = (e) => {
+        newImages.push(e.target.result);
+        setBgImages(newImages);
+        localStorage.setItem('backgroundImages', JSON.stringify(newImages));
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const addImage = () => {
-    if (newImage) {
-      const updatedImages = [newImage, ...images];
-      setImages(updatedImages);
-      localStorage.setItem('backgroundImages', JSON.stringify(updatedImages));
-      setNewImage(null);
-      onImagesUpdate(updatedImages);
-      onClose();  // Close the manager after adding
-    }
-  };
-
-  const removeImage = (index) => {
-    const updatedImages = images.filter((_, i) => i !== index);
-    setImages(updatedImages);
-    localStorage.setItem('backgroundImages', JSON.stringify(updatedImages));
-    onImagesUpdate(updatedImages);
+    });
+    setShowImageManager(false);
   };
 
   return (
-    <div className="image-manager">
-      <h3>Manage Background Images</h3>
-      
-      <div className="image-upload">
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-        {newImage && (
-          <>
-            <img src={newImage} alt="Preview" className="image-preview" />
-            <button onClick={addImage}>Add This Image</button>
-          </>
-        )}
-      </div>
-
-      <div className="image-list">
-        {images.map((img, index) => (
-          <div key={index} className="image-item">
-            <img src={img} alt={`Background ${index}`} />
-            <button onClick={() => removeImage(index)}>Remove</button>
+    showImageManager && (
+      <div className="image-manager-modal">
+        <div className="image-manager">
+          <h3>Upload Background Images</h3>
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*" 
+            onChange={(e) => handleImageUpload(e.target.files)}
+            className="image-upload-input"
+          />
+          <div className="current-images">
+            <h4>Current Backgrounds ({bgImages.length})</h4>
+            <div className="image-grid">
+              {bgImages.map((img, index) => (
+                <div key={index} className="image-thumbnail">
+                  <img 
+                    src={img} 
+                    alt={`Background ${index}`}
+                    className={index === currentBgIndex ? 'active' : ''}
+                  />
+                  <button 
+                    onClick={() => {
+                      const updated = bgImages.filter((_, i) => i !== index);
+                      setBgImages(updated);
+                      localStorage.setItem('backgroundImages', JSON.stringify(updated));
+                      if (currentBgIndex >= updated.length) {
+                        setCurrentBgIndex(0);
+                      }
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
+          <button 
+            className="close-manager"
+            onClick={() => setShowImageManager(false)}
+          >
+            Close
+          </button>
+        </div>
       </div>
-    </div>
+    )
   );
-}
-
-export default ImageManager;
+};

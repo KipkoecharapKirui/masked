@@ -1,0 +1,88 @@
+/* Markdown Rendering Styles */
+.response-content {
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.response-content p {
+  margin-bottom: 1.2rem;
+}
+
+.response-content pre {
+  background: #011627;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.response-content code:not(pre code) {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdown-table th,
+.markdown-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-table th {
+  background-color: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.response-content ul,
+.response-content ol {
+  margin: 1.2rem 0;
+  padding-left: 2rem;
+}
+
+.response-content li {
+  margin-bottom: 0.5rem;
+}
+
+.response-content blockquote {
+  border-left: 3px solid var(--accent-color);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid var(--accent-color);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

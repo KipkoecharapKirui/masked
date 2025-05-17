@@ -119,9 +119,9 @@ body {
 }.chat-form {
   width: 90%;
   max-width: 800px;
-  position: fixed;
-  bottom: 35%;
-  left: 50%;
+  position: absolute;
+
+  left: 60%;
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
@@ -517,4 +517,27 @@ body {
     top: 15px;    /* Adjust position to match new size */
     right: 15px;
   }
+}
+
+
+/* Ensure the background covers the entire main area */
+.main-page {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: calc(100vw - 250px); /* Subtract the width of the sidebar */
+  min-height: 100vh;
+  transition: background-image 0.5s ease-in-out;
+}
+
+/* Adjust for mobile view */
+@media (max-width: 768px) {
+  .main-page {
+    width: 100vw;
+  }
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
 }

@@ -11,9 +11,14 @@
   },
   "dependencies": {
     "openai": "^4.98.0",
+    "prism-react-renderer": "^2.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-speech-recognition": "^4.0.1"
+    "react-markdown": "^10.1.0",
+    "react-speech-recognition": "^4.0.1",
+    "react-syntax-highlighter": "^15.6.1",
+    "remark-gfm": "^4.0.1",
+    "speech-recognition-polyfill": "^0.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
