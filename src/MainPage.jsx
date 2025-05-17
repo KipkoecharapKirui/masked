@@ -35,7 +35,7 @@ function MainPage({ addToHistory, activeResponse }) {
       setBgImages(JSON.parse(savedImages));
     } else {
       setBgImages([
-        'https://i.pinimg.com/736x/6c/5f/45/6c5f45a6877ff424cf103aba4881c7e4.jpg'
+        'https://i.pinimg.com/736x/0e/11/d2/0e11d24043e4aa2bee8e25b2698e26de.jpg'
       ]);
     }
 
